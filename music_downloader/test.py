@@ -5,19 +5,6 @@ import fix_music_tags
 import tidal_downloader
 
 
-class TestTotalIntegration(unittest.TestCase):
-    # This isn't exactly a 'unit' test
-    """def test_fileprocessor(self):
-        with open("testfile1.txt", "w") as f:
-            f.write("https://listen.tidal.com/album/247590325")
-        with open("testfile2.txt", "w") as f:
-            f.write("https://tidal.com/browse/track/92932818")
-
-        autodownloader.process_files(["testfile1.txt", "testfile2.txt"])
-    """
-
-
-
 class TestRequestFile(unittest.TestCase):
     def test_fileparser_regex(self):
         tests = [
