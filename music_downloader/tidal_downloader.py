@@ -1,3 +1,5 @@
+# v1.0
+
 from tidal_dl.events import *
 from tidal_dl.settings import *
 
