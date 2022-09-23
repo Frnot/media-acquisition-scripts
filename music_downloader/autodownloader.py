@@ -1,4 +1,4 @@
-#v2.0
+#v2.1
 
 # TODO: add setup.py or something that will install from git with pip
 
@@ -20,7 +20,19 @@ def main():
     dif = os.path.commonpath([local_path[::-1], remote_path[::-1]])[::-1]
     path_translation = remote_path.replace(dif, ""), local_path.replace(dif, "")
 
+    check(local_path)
+
     watch_changes(remote_path, path_translation, ssh_string)
+
+
+def check(local_dir):
+    for root,d_names,f_names in os.walk(local_dir, topdown=False):
+        for file in f_names:
+            if file != "get.txt":
+                continue
+
+            filepath = os.path.join(root, file)
+            process_file(filepath)
 
 
 def watch_changes(watch_dir, path_translation, ssh_string):
