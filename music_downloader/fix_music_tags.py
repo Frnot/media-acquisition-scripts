@@ -1,4 +1,4 @@
-# v2.0
+# v2.1
 
 import os
 import re
@@ -15,7 +15,7 @@ regex_list = [
 def update_dir(dir_path, dry_run=False):
     root, dir = os.path.split(dir_path)
     for file in os.listdir(dir_path):
-        filepath = os.path.join(root, file)
+        filepath = os.path.join(dir_path, file)
         update(filepath, dry_run)
 
     # Check directory names
@@ -29,13 +29,14 @@ def update_dir(dir_path, dry_run=False):
 
 def update(filepath, dry_run=False):
     root,file = os.path.split(filepath)
+    save_tags = False
     try:
         ftag = music_tag.load_file(filepath)
-        save_tags = False
     except KeyboardInterrupt:
         print("Exiting")
         quit()
-    except:
+    except Exception as e:
+        print(f"Error loading file for edit: {e}")
         return None
     
     # Check title
@@ -50,11 +51,10 @@ def update(filepath, dry_run=False):
         ftag['album'] = album
         save_tags = True
 
-    # Save tags if somethign has changed
+    # Save tags if something has changed
     if save_tags:
         print(f"Old title: \"{original_title}\" ||| New title: \"{title}\"")
         print(filepath)
-        filetagcount += 1
         if not dry_run:
             ftag.save()
         
