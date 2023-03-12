@@ -9,6 +9,7 @@ regex_list = [
     re.compile(r"\s*[({\[]explicit[)}\]]", re.IGNORECASE),  # explicit
     re.compile(r"\s*[({\[]\s*\d*\s*re[-]*master[ed]*\s*\d*\s*[)}\]]", re.IGNORECASE),  # remastered
     re.compile(r"\s*[({\[]\s*album\s+version\s*[)}\]]", re.IGNORECASE)  # "album version"
+    
 ]
 
 
@@ -74,3 +75,7 @@ def clean(string):
         hits += hit
 
     return string.strip() if hits else None
+
+
+if __name__ == "__main__":
+    update_dir(r"V:\media\audio\Music\Pop")

@@ -1,5 +1,7 @@
 # v1.0
 
+import re
+
 from tidal_dl.events import *
 from tidal_dl.settings import *
 
@@ -18,7 +20,7 @@ SETTINGS.saveAlbumInfo = False
 SETTINGS.usePlaylistFolder = False
 SETTINGS.multiThread = True
 
-TOKEN.read("/root/.tidal-dl.token.json")
+TOKEN.read(getTokenPath())
 test = TIDAL_API.apiKey = apiKey.getItem(SETTINGS.apiKeyIndex)
 
 if not loginByConfig():
@@ -48,3 +50,41 @@ def download(id, download_dir, dry_run=False):
             return
 
     return path
+
+
+def search(track, artist):
+    """dont return remixes or singles that have albums"""
+
+    search_string = f"{track} {artist}"
+    while True:
+        results = TIDAL_API.search(text=search_string, type=Type.Track).tracks.items
+
+        best_candidate = None
+        for track in results:
+            if "karaoke" in track.album.title.lower():
+                continue
+            if "hits" in track.album.title.lower() and "hits" not in track.title.lower():
+                continue
+
+            if track.artist:
+                if artist.lower() not in track.artist.name.lower():
+                    continue
+            else:
+                if artist.lower() not in [a.name.lower() for a in track.artists]:
+                    continue
+
+            if track.version is not None and track.version not in ("Original Version", "Album Version"):
+                continue
+            else:
+                best_candidate = track
+
+            if track.title.lower() == track.album.title.lower():
+                album = TIDAL_API.getAlbum(track.album.id)
+                if album.type == "SINGLE":
+                    continue
+            return track
+        else:
+            if not best_candidate and re.search("\s?[\(\[].*?[\)\]]\s?", search_string):
+                search_string = re.sub("\s?[\(\[].*?[\)\]]\s?", " ", search_string) # remove parantheses from search string
+                continue
+            return best_candidate
