@@ -84,6 +84,10 @@ def search(track, artist):
         for track in results:
             if "karaoke" in track.album.title.lower():
                 continue
+            if "acoustic" in track.album.title.lower():
+                continue
+            if "remix" in track.album.title.lower():
+                continue
             if "now that's what i call music" in track.album.title.lower():
                 continue
             if "hits" in track.album.title.lower() and "hits" not in track.title.lower():
@@ -107,7 +111,7 @@ def search(track, artist):
                     continue
             return track
         else:
-            if not best_candidate and re.search("\s?[\(\[].*?[\)\]]\s?", search_string):
-                search_string = re.sub("\s?[\(\[].*?[\)\]]\s?", " ", search_string) # remove parantheses from search string
+            if not best_candidate and re.search(r"\s?[\(\[].*?[\)\]]\s?", search_string):
+                search_string = re.sub(r"\s?[\(\[].*?[\)\]]\s?", " ", search_string) # remove parantheses from search string
                 continue
             return best_candidate

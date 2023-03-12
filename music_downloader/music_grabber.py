@@ -26,6 +26,8 @@ def main():
     errored_tracks = []
 
     for artist, tracks in tracks_to_get.items():
+        download_dir = None
+
         # dont download tracks that already exist
         """
         if artist.lower() in existing_artists:
@@ -48,27 +50,31 @@ def main():
         # build list of albums to get by searching tidal for track name
         # remove duplicate albums (multiple tracks in same album)
         albums = {}
-        for track in tracks:
+        for track in tracks.copy():
             try:
                 album = tidal_downloader.search(track, artist).album
-                albums[album.title] = album
+                albums[album.title] = (album, track)
                 print(f"album: {album.title} | {track}")
-            except AttributeError:
-                print(f"Error when searching for {track} {artist}")
+            except AttributeError as e:
+                print(f"Error when searching for {track} {artist} | {e}")
                 errored_tracks.append(f"{track} {artist}")
+                tracks.remove(track)
                 continue
             
+        if not tracks:
+            print("\nAll tracks for artist errored out.\n")
 
 
         # remove duplicate albums (ones we already have)
         if artist.lower() in existing_artists:
             print(f"\nAlready have music by artist: {artist}")
-            existing_albums = [a.split(" - ")[-1].lower() for a in os.listdir(os.path.join(existing_artists[artist.lower()]))]
+            download_dir = existing_artists[artist.lower()]
+            existing_albums = [a.split(" - ")[-1].lower() for a in os.listdir(download_dir)]
             
             for album_to_get in list(albums.keys()):
-                album_to_get = re.sub("\s?[\(\[].*?[\)\]]\s?", " ", album_to_get)
+                scrubbed_album_to_get = re.sub("\s?[\(\[].*?[\)\]]\s?", " ", album_to_get)
                 for existing_album in existing_albums:
-                    match_ratio = fuzz.partial_ratio(album_to_get.lower(), existing_album)
+                    match_ratio = fuzz.partial_ratio(scrubbed_album_to_get.lower(), existing_album)
                     if match_ratio >= 90:
                         print(f"Found existing album: {artist} - {album_to_get}")
                         del albums[album_to_get]
@@ -79,18 +85,19 @@ def main():
             continue
 
 
-        print(f"Will download the following album(s) by '{artist}'")
-        for album in albums:
-            print(album)
-        choice = input("Hit enter to continue or any key to skip")
-        if choice != "":
-            continue
+        print(f"\nWill download the following album(s) by '{artist}'")
+        for album, track in albums.values():
+            print(f"{album.title} | {track}")
+        #choice = input("Hit enter to continue or any key to skip: ")
+        #if choice != "":
+        #    continue
         else:
-            download_dir = os.path.join(dest_dir, artist)
+            if not download_dir:
+                download_dir = os.path.join(dest_dir, artist)
             if not os.path.exists(download_dir):
                 os.makedirs(download_dir)
 
-            for album in albums.values():
+            for album, track in albums.values():
                 dlpath = tidal_downloader.download_album(album, download_dir)
                 if dlpath:
                     print(f"\nDownloaded {album} to {dlpath}")
