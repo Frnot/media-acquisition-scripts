@@ -56,6 +56,7 @@ class TestTagEditing(unittest.TestCase):
 class TestSearch(unittest.TestCase):
     def test_search(self):
         tests = [
+            (("Somebody", "Natalie La Rose"), 38949955),
             (("Don't You Worry Child", "Swedish House Mafia"), 17271289),
             (("(When You Gonna) Give It Up To Me", "Sean Paul"), 2147347),
             (("Untitled (How Can This Happen To Me?)", "Simple Plan"), 268069),

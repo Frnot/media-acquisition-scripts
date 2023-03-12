@@ -1,31 +1,37 @@
 """loads data from billbaord scraper and downloads it form tidal"""
 
 import os
+import re
 import shelve
 from time import perf_counter as time
 
-import fuzzywuzzy
+from fuzzywuzzy import fuzz
 import tidal_downloader
+import tidal_dl
+
+from fix_music_tags import update_dir
 
 media_dir = r"V:\media\audio\Music"
+dest_dir = r"V:\media\audio\Music\Pop"
 
 def main():
     tracks_to_get = get_new_tracklist()
     existing_artists = generate_artist_list()
 
+    #tracks_to_get = {}
+    #tracks_to_get["Fetty Wap"] = ['679']#, 'I Feel It Coming', 'In The Night', 'The Hills', 'Blinding Lights', 'Die For You', 'Starboy', 'Sacrifice', 'Earned It (Fifty Shades Of Grey)']
+
     #download(str(track.album.id), download_dir)
 
+    errored_tracks = []
 
     for artist, tracks in tracks_to_get.items():
-    
         # dont download tracks that already exist
-        if artist in existing_artists:
-            #get albums we have
-            #existing_albums = [a.split(" - ")[1] for a in os.listdir(existing_artists[artist])]
-
+        """
+        if artist.lower() in existing_artists:
             # get all files under artist dir
             existing_tracks = []
-            for r, d, f in os.walk(existing_artists[artist]):
+            for r, d, f in os.walk(existing_artists[artist.lower()]):
                 existing_tracks.extend(f)
 
             # clean up filenames
@@ -36,6 +42,7 @@ def main():
             for track in tracks:
                 if track in existing_tracks: #TODO: fuzz this if needed
                     tracks.remove(track)
+        """
 
 
         # build list of albums to get by searching tidal for track name
@@ -44,17 +51,50 @@ def main():
         for track in tracks:
             try:
                 album = tidal_downloader.search(track, artist).album
+                albums[album.title] = album
+                print(f"album: {album.title} | {track}")
             except AttributeError:
                 print(f"Error when searching for {track} {artist}")
-                raise AttributeError
-            albums[album.title] = album
-            print(f"album: {album.title} | {track}")
+                errored_tracks.append(f"{track} {artist}")
+                continue
+            
 
 
-        # TODO: remove duplicate albums (ones we already have)
+        # remove duplicate albums (ones we already have)
+        if artist.lower() in existing_artists:
+            print(f"\nAlready have music by artist: {artist}")
+            existing_albums = [a.split(" - ")[-1].lower() for a in os.listdir(os.path.join(existing_artists[artist.lower()]))]
+            
+            for album_to_get in list(albums.keys()):
+                album_to_get = re.sub("\s?[\(\[].*?[\)\]]\s?", " ", album_to_get)
+                for existing_album in existing_albums:
+                    match_ratio = fuzz.partial_ratio(album_to_get.lower(), existing_album)
+                    if match_ratio >= 90:
+                        print(f"Found existing album: {artist} - {album_to_get}")
+                        del albums[album_to_get]
+                        break
 
-        
-        print(albums)
+        if not albums:
+            print(f"\nSkipping artist {artist}. already downloaded")
+            continue
+
+
+        print(f"Will download the following album(s) by '{artist}'")
+        for album in albums:
+            print(album)
+        choice = input("Hit enter to continue or any key to skip")
+        if choice != "":
+            continue
+        else:
+            download_dir = os.path.join(dest_dir, artist)
+            if not os.path.exists(download_dir):
+                os.makedirs(download_dir)
+
+            for album in albums.values():
+                dlpath = tidal_downloader.download_album(album, download_dir)
+                if dlpath:
+                    print(f"\nDownloaded {album} to {dlpath}")
+                    update_dir(dlpath)
 
         
 
@@ -97,7 +137,7 @@ def generate_artist_list():
     artist_list = {}
     for genre in os.listdir(root):
         for artist in os.listdir(os.path.join(root, genre)):
-            artist_list[artist] = os.path.join(root, genre, artist)
+            artist_list[artist.lower()] = os.path.join(root, genre, artist)
             
     return artist_list
 

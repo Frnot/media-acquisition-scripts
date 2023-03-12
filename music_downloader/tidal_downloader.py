@@ -52,6 +52,27 @@ def download(id, download_dir, dry_run=False):
     return path
 
 
+def download_album(album, download_dir, dry_run=False):
+    SETTINGS.downloadPath = download_dir
+    album = TIDAL_API.getAlbum(album.id)
+
+    try:
+        path = getAlbumPath(album)
+    except Exception as e:
+        Printf.err(str(e))
+        return
+
+    if not dry_run:
+        try:
+            start_album(album)
+        except Exception as e:
+            Printf.err(str(e))
+            return
+        
+    return path
+    
+
+
 def search(track, artist):
     """dont return remixes or singles that have albums"""
 
@@ -62,6 +83,8 @@ def search(track, artist):
         best_candidate = None
         for track in results:
             if "karaoke" in track.album.title.lower():
+                continue
+            if "now that's what i call music" in track.album.title.lower():
                 continue
             if "hits" in track.album.title.lower() and "hits" not in track.title.lower():
                 continue
