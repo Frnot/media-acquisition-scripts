@@ -19,7 +19,7 @@ def main():
     existing_artists = generate_artist_list()
 
     #tracks_to_get = {}
-    #tracks_to_get["Fetty Wap"] = ['679']#, 'I Feel It Coming', 'In The Night', 'The Hills', 'Blinding Lights', 'Die For You', 'Starboy', 'Sacrifice', 'Earned It (Fifty Shades Of Grey)']
+    #tracks_to_get["Estelle"] = ['American Boy']#, 'I Feel It Coming', 'In The Night', 'The Hills', 'Blinding Lights', 'Die For You', 'Starboy', 'Sacrifice', 'Earned It (Fifty Shades Of Grey)']
 
     #download(str(track.album.id), download_dir)
 
@@ -29,7 +29,6 @@ def main():
         download_dir = None
 
         # dont download tracks that already exist
-        """
         if artist.lower() in existing_artists:
             # get all files under artist dir
             existing_tracks = []
@@ -41,11 +40,16 @@ def main():
                 existing_tracks[idx] = ".".join(track.split(".")[:-1]).split(" - ")[-1]
 
             # remove duplicates from tracks to get
-            for track in tracks:
-                if track in existing_tracks: #TODO: fuzz this if needed
-                    tracks.remove(track)
-        """
+            for track_to_get in tracks:
+                for existing_track in existing_tracks:
+                    match_ratio = fuzz.partial_ratio(track_to_get, existing_track)
+                    if match_ratio >= 90:
+                        tracks.remove(track_to_get)
+                        break
 
+        if not tracks:
+            print("\nAlready have every track for this artist\n")
+            continue
 
         # build list of albums to get by searching tidal for track name
         # remove duplicate albums (multiple tracks in same album)
@@ -63,6 +67,7 @@ def main():
             
         if not tracks:
             print("\nAll tracks for artist errored out.\n")
+            continue
 
 
         # remove duplicate albums (ones we already have)

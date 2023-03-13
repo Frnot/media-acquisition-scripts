@@ -46,6 +46,7 @@ class TestTagEditing(unittest.TestCase):
             ("Test (2005 Remaster)", "Test"),
             ("Test (Remastered 2011)", "Test"),
             ("Test (album version) [Explicit]", "Test"),
+            ("Test Title (US Domestic Release)", "Test Title"),
         ]
 
         for r, m in tests:
@@ -56,6 +57,9 @@ class TestTagEditing(unittest.TestCase):
 class TestSearch(unittest.TestCase):
     def test_search(self):
         tests = [
+            (("Mr. Brightside", "The Killers"), 150850050),
+            (("Levels", "Avicii"), 9184436),
+            (("My Last","Big Sean"), 10607206),
             (("Swan Song","Dua Lipa"), 102645401),
             (("Somebody", "Natalie La Rose"), 38949955),
             (("Don't You Worry Child", "Swedish House Mafia"), 17271289),
@@ -63,7 +67,6 @@ class TestSearch(unittest.TestCase):
             (("Untitled (How Can This Happen To Me?)", "Simple Plan"), 268069),
             (("La La", "Ashlee Simpson"), 35730192),
             (("All Around The World", "Justin Bieber"), 15905168),
-            (("Levels", "Avicii"), 9184436),
         ]
 
         for search_string, album_id in tests:
