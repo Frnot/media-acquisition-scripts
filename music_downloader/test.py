@@ -57,6 +57,9 @@ class TestTagEditing(unittest.TestCase):
 class TestSearch(unittest.TestCase):
     def test_search(self):
         tests = [
+            (("7 Things","Miley Cyrus"), 36771409),
+            (("Prisoner","Miley Cyrus"), 163342283),
+            (("Decode","Paramore"), 188828408),
             (("Mr. Brightside", "The Killers"), 150850050),
             (("Levels", "Avicii"), 9184436),
             (("My Last","Big Sean"), 10607206),

@@ -12,6 +12,11 @@ regex_list = [
     re.compile(r"\s*[({\[].*release\s*[)}\]]", re.IGNORECASE),  # "US Release"
 ]
 
+filename_regex_list = [
+    re.compile(r"[\d|\.]+\s+-\s+", re.IGNORECASE),  # N - filename
+    re.compile(r"\.[\w|\d]{2,5}$", re.IGNORECASE),  # file extensions
+    re.compile(r"\s*[({\[].*[)}\]]$", re.IGNORECASE),  # anything in parenthesis (at the end of the title)
+]
 
 def update_dir(dir_path, dry_run=False):
     root, dir = os.path.split(dir_path)
@@ -77,5 +82,11 @@ def clean(string):
     return string.strip() if hits else None
 
 
+def scrub_filename(filename):
+    for regex in filename_regex_list + regex_list:
+        filename, hit = regex.subn("", filename)
+    return filename.lower()
+
+
 if __name__ == "__main__":
-    update_dir(r"V:\media\audio\Music\Pop")
+    update_dir(r"")

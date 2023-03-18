@@ -71,7 +71,9 @@ def download_album(album, download_dir, dry_run=False):
             return
         
     return path
-    
+
+
+
 forbidden_search_terms = [
     "soundtrack",
     "best of",
@@ -82,25 +84,36 @@ forbidden_search_terms = [
     "hits",
 ]
 
+forbidden_regex = [
+    re.compile(r"[\s({\[]*live([)}\]]|\s+|$)", re.IGNORECASE),  # live or (live) but not lives
+]
+
 def search(track, artist):
     """dont return remixes or singles that have albums"""
 
     search_string = f"{track} {artist}"
     while True:
-        results = TIDAL_API.search(text=search_string, type=Type.Track, limit=5).tracks.items
+        results = TIDAL_API.search(text=search_string, type=Type.Track).tracks.items
 
         best_candidate = None
         for track in results:
-            normalized_title = track.album.title.lower()
+            normalized_track_title = track.title.lower()
+            normalized_album_title = track.album.title.lower()
 
             forbidden_match = False
             for term in forbidden_search_terms:
-                if term in normalized_title:
+                if term in normalized_track_title or term in normalized_album_title:
                     forbidden_match = True
                     break
             if forbidden_match:
                 continue
 
+            for regex in forbidden_regex:
+                if regex.search(track.title):
+                    forbidden_match = True
+                    break
+            if forbidden_match:
+                continue
 
             if track.artist:
                 if artist.lower() not in track.artist.name.lower():
@@ -110,12 +123,14 @@ def search(track, artist):
                     continue
 
             if track.version is not None:
-                match, ratio = process.extractOne(track.version, ("Original Version", "Album Version"))
+                match, ratio = process.extractOne(track.version, ("Original Version", "Album Version", "Single Version"))
                 if ratio < 90:
                     continue
             
             album = TIDAL_API.getAlbum(track.album.id)
             if album.artist.name == 'Various Artists':
+                continue
+            if album.artist and album.artist.name != artist:
                 continue
 
             best_candidate = track
