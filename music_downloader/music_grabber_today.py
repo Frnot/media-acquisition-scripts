@@ -1,27 +1,21 @@
 """loads data from billbaord scraper and downloads it form tidal"""
 
 import os
-import re
-import shelve
-from time import perf_counter as time
+import time
 
 from fuzzywuzzy import fuzz
-import tidal_downloader
-import tidal_dl
 
+import tidal_downloader
+from billboard_scraper import top_40_no_country, group_by_artist
 from fix_music_tags import update_dir, scrub_filename
+from local_file_utils import find_existing_artists, find_existing_tracks, subtract_existing_tracks
 
 media_dir = r"V:\media\audio\Music"
 dest_dir = r"V:\media\audio\Music\Pop"
 
 def main():
-    tracks_to_get = get_new_tracklist()
-    existing_artists = generate_artist_list()
-
-    #tracks_to_get = {}
-    #tracks_to_get['Miley Cyrus'] = ["D.R.E.A.M"]
-
-    #download(str(track.album.id), download_dir)
+    tracks_to_get = group_by_artist(top_40_no_country())
+    existing_artists = find_existing_artists(media_dir)
 
     errored_tracks = []
 
@@ -33,11 +27,10 @@ def main():
 
         # dont download tracks that already exist
         if artist.lower() in existing_artists:
-            tracks = nonexisting_tracks(tracks, existing_artists[artist.lower()])
-        
+            tracks = subtract_existing_tracks(tracks, find_existing_tracks(existing_artists[artist.lower()]))
 
         if not tracks:
-            print(f"\nAlready have every track for artist {artist}\n")
+            print(f"\nAlready have every track for artist {artist}")
             continue
 
         # build list of albums to get by searching tidal for track name
@@ -60,8 +53,6 @@ def main():
         if not tracks:
             print("\nAll tracks for artist errored out.\n")
             continue
-
-
 
         # remove duplicate albums (ones we already have)
         if artist.lower() in existing_artists:
@@ -94,82 +85,17 @@ def main():
                 download_dir = os.path.join(dest_dir, artist)
             if not os.path.exists(download_dir):
                 os.makedirs(download_dir)
+                time.sleep(1)
 
             for album, tracks in albums.values():
-                if ttg := nonexisting_tracks(tracks, download_dir):
+                if ttg := subtract_existing_tracks(tracks, find_existing_tracks(download_dir)):
                     print(f"Downloading album {album} because we dont have song(s) {ttg}")
                     dlpath = tidal_downloader.download_album(album, download_dir)
                     if dlpath:
                         print(f"\nDownloaded {album} to {dlpath}")
                         update_dir(dlpath)
-                    else:
-                        print(f"Not downloading {album} for {track} because a recently downloaded album included it")
-
-        
-
-
-def nonexisting_tracks(tracks_to_check, artist_dir):
-    # get all files under artist dir
-    existing_tracks = []
-    for r, d, f in os.walk(artist_dir):
-        existing_tracks.extend(f)
-
-    # remove duplicates from tracks to get
-    for track_to_get in tracks_to_check.copy():
-        scrubbed_track_to_get = scrub_filename(track_to_get)
-        for existing_track in existing_tracks:
-            scrubbed_existing_track = scrub_filename(existing_track)
-            match_ratio = fuzz.ratio(scrubbed_track_to_get, scrubbed_existing_track)
-            if match_ratio >= 90 or scrubbed_track_to_get in scrubbed_existing_track:
-                tracks_to_check.remove(track_to_get)
-                break
-
-    return tracks_to_check
-
-
-
-
-def get_new_tracklist():
-    """get list of tracks to get"""
-    track_dict = {}
-
-    filename = "billboard_top40"
-    with shelve.open(os.path.join("music_downloader\data", filename)) as db:
-        try:
-            date = db["date"]
-            tracks = db["tracks"]
-        except KeyError:
-            pass
-    #sorted_tracks = sorted(tracks, key=lambda e: e[1])
-
-    for track, artist in tracks:
-        artist = artist.split(" Featuring")[0] # remove featured artists from entry
-        if artist in track_dict:
-            track_dict[artist].append(track)
-        else:
-            track_dict[artist] = [track]
-
-    sorted_tracks = set()
-    for artist, tracks in track_dict.items():
-        sorted_tracks.add((artist, ", ".join(tracks)))
-
-    sorted_tracks = sorted(sorted_tracks, key=lambda e: e[0])
-
-    return track_dict
-
-
-
-def generate_artist_list():
-    root = os.path.normpath(media_dir)
-
-    artist_list = {}
-    for genre in os.listdir(root):
-        for artist in os.listdir(os.path.join(root, genre)):
-            artist_list[artist.lower()] = os.path.join(root, genre, artist)
-            
-    return artist_list
-
-
+                else:
+                    print(f"Not downloading {album} for {track} because a recently downloaded album included it")
 
 
 if __name__ == "__main__":

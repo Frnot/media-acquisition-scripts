@@ -2,6 +2,7 @@
 
 import os
 import re
+from functools import cache
 
 import music_tag
 
@@ -81,7 +82,7 @@ def clean(string):
 
     return string.strip() if hits else None
 
-
+@cache
 def scrub_filename(filename):
     for regex in filename_regex_list + regex_list:
         filename, hit = regex.subn("", filename)

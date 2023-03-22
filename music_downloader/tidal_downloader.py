@@ -5,6 +5,7 @@ import re
 
 from tidal_dl.events import *
 from tidal_dl.settings import *
+import tidal_dl.model
 
 
 SETTINGS.audioQuality = AudioQuality.HiFi
@@ -53,7 +54,7 @@ def download(id, download_dir, dry_run=False):
     return path
 
 
-def download_album(album, download_dir, dry_run=False):
+def download_album(album: tidal_dl.model.Album, download_dir, dry_run=False):
     SETTINGS.downloadPath = download_dir
     album = TIDAL_API.getAlbum(album.id)
 
