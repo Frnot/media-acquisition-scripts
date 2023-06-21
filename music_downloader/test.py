@@ -1,10 +1,12 @@
 import unittest
 
-import autodownloader
-import fix_music_tags
-import tidal_downloader
+#import autodownloader
+#import fix_music_tags
+#import tidal_downloader
+import qobuz_dl.metadata
 
 
+"""
 class TestRequestFile(unittest.TestCase):
     def test_fileparser_regex(self):
         tests = [
@@ -77,6 +79,22 @@ class TestSearch(unittest.TestCase):
             if result:
                 result = result.album.id
             self.assertEqual(result, album_id)
+"""
+
+class TestQobuzFeaturedArtistTag(unittest.TestCase):
+    def test_tagging(self):
+        tests = [
+            ("", []),
+            ("Ramirez, MainArtist - Ivan Ramirez, Composer - Rocci, FeaturedArtist", ["Ramirez", "Rocci"]),
+            ("Tijs Verwest, Writer - Tiesto, Producer, Performed by, MainArtist - Gina Tucci, A&R Direction - Tom Norris, Mixer - Lostboy, Producer - Sarah Blanchard, Writer - Pablo Bowman, Writer - Peter Rycroft, Writer - Ava Max, Performed by, MainArtist - Amanda Ava Koci, Writer - Claudia Valentina, Writer", ["Tiësto", "Ava Max"]),
+            ('Joe LaPorta, Mastering Engineer - Travis Scott, FeaturedArtist, AssociatedPerformer, Vocal - Leland Wayne, Composer, Lyricist - Jacques Webster, Composer, Lyricist - Offset, MainArtist, AssociatedPerformer, Vocal - Metro Boomin, Producer, Programmer, All Instruments, MainArtist, AssociatedPerformer, Vocal - Kiari Cephus, Composer, Lyricist - Ethan Stevens, Mixing Engineer - 21 Savage, MainArtist, AssociatedPerformer, Vocal - Shayaa Joseph, Composer, Lyricist - 21 Savage, Offset & Metro Boomin feat. Travis Scott, AssociatedPerformer', ["21 Savage", "Offset", "Metro Boomin", "Travis Scott"])
+        ]
+
+        for test_string, expected_result in tests:
+            test_dict = {"performers" : test_string}
+            artists = [expected_result[0]] if expected_result else []
+            qobuz_dl.metadata._get_featured_artists(artists, test_dict)
+            self.assertEqual(artists, expected_result)
 
 
 if __name__ == "__main__":
