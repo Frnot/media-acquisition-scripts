@@ -1,15 +1,33 @@
 # v2.1
 
+# album dirname (expanded edition) ((anything with edition)) (.* version) (reissue)
+# in title: (album version) (and remasters (add to comments))
+# (explicit) inside album version, run the whole thing multiple times to catch permutations
+
+# deluxe edition. deluxe version
+
+
+## Directory name:
+# save original year, edit album name to match cleaned tags
+
+
 import os
 import re
+import unittest
 from functools import cache
 
 import music_tag
 
-regex_list = [
-    re.compile(r"\s*[({\[]explicit[)}\]]", re.IGNORECASE),  # explicit
+title_regex = [
+    re.compile(r"\s*[({\[].*explicit.*[)}\]]", re.IGNORECASE),  # explicit, explicit version, .*explicit.*
     re.compile(r"\s*[({\[]\s*\d*\s*re[-]*master[ed]*\s*\d*\s*[)}\]]", re.IGNORECASE),  # remastered
     re.compile(r"\s*[({\[]\s*album\s+version\s*[)}\]]", re.IGNORECASE),  # "album version"
+    re.compile(r"\s*[({\[].*edition\s*[)}\]]", re.IGNORECASE),  # ".*edition"
+    re.compile(r"\s*[({\[].*release\s*[)}\]]", re.IGNORECASE),  # "US Release"
+]
+
+album_regex = [
+    re.compile(r"\s*[({\[].*explicit.*[)}\]]", re.IGNORECASE),  # explicit, explicit version, .*explicit.*
     re.compile(r"\s*[({\[].*release\s*[)}\]]", re.IGNORECASE),  # "US Release"
 ]
 
@@ -27,7 +45,7 @@ def update_dir(dir_path, dry_run=False):
 
     # Check directory names
     old_dirname = dirname = dir
-    if dirname := clean(dirname):
+    if dirname := clean_album(dirname):
         print(f"Old directory name: \"{old_dirname}\" ||| New directory name: \"{dirname}\"")
         if not dry_run:
             new_dirpath = os.path.join(root, dirname)
@@ -48,13 +66,13 @@ def update(filepath, dry_run=False):
     
     # Check title
     original_title = title = ftag['title'].value
-    if title := clean(title):
+    if title := clean_title(title):
         ftag['title'] = title
         save_tags = True
 
     # Check Album tag
     album = ftag['album'].value
-    if album := clean(album):
+    if album := clean_album(album):
         ftag['album'] = album
         save_tags = True
 
@@ -67,16 +85,25 @@ def update(filepath, dry_run=False):
         
     # Check filename
     old_filename = filename = file
-    if filename := clean(filename):
+    if filename := clean_title(filename):
         print(f"Old filename: \"{old_filename}\" ||| New filename: \"{filename}\"")
         if not dry_run:
             new_filepath = os.path.join(root, filename)
             os.rename(filepath, new_filepath)
 
 
-def clean(string):
+def clean_title(string): 
     hits = 0
-    for regex in regex_list:
+    for regex in title_regex:
+        string, hit = regex.subn("", string)
+        hits += hit
+
+    return string.strip() if hits else None
+
+
+def clean_album(string):
+    hits = 0
+    for regex in album_regex:
         string, hit = regex.subn("", string)
         hits += hit
 
@@ -84,10 +111,44 @@ def clean(string):
 
 @cache
 def scrub_filename(filename):
-    for regex in filename_regex_list + regex_list:
+    for regex in filename_regex_list + album_regex:
         filename, hit = regex.subn("", filename)
     return filename.lower()
 
 
+
+class Test(unittest.TestCase):
+    def test_title_tagging(self):
+        tests = [
+            ("Test Title (2009 Re-Mastered)", "Test Title"),
+            ("Test (explicit)", "Test"),
+            ("8 - Test Title (feat. Dude #1, Dude #2, & Dude #3) [2005 Remaster].flac", "8 - Test Title (feat. Dude #1, Dude #2, & Dude #3).flac"),
+            ("Test (2005 Remaster)", "Test"),
+            ("Test (Remastered 2011)", "Test"),
+            ("Test (album version) [Explicit]", "Test"),
+            ("Test Title (US Domestic Release)", "Test Title"),
+        ]
+
+        for r, m in tests:
+            self.assertEqual(clean(r), m)
+
+    def test_filename(self):
+        tests = [
+            ("1973 - Body Talk (CTI Records 40th Anniversary Edition)", "1973 - Body Talk")
+        ]
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    update_dir(r"")
+    path = r"C:\Users\Frnot\Desktop\QobuzDownloads"
+    for dir in os.listdir(path):
+        update_dir(os.path.join(path,dir))
+    #Test().test_title_tagging()

@@ -85,9 +85,19 @@ class TestQobuzFeaturedArtistTag(unittest.TestCase):
     def test_tagging(self):
         tests = [
             ("", []),
+            ("Zara Larsson, Associated Performer, Composer, Lyricist, Main Artist - Wizkid, Associated Performer, Featured Artist - Zara Larsson feat. WizKid, Associated Performer - Ammar Malik, Composer, Lyricist - Phil Shaouy, Composer, Lyricist, Producer - StarGate, Producer - Brian 'Peoples' Garcia, Producer - Jacob Kasher Hindlin, Composer, Lyricist - Mikkel Eriksen, Composer, Lyricist - Phil Tan, Mixing Engineer - Bill Zimmerman, Engineer - Michelle Mancini, Mastering Engineer - Tor Hermansen, Composer, Lyricist - Ayodeji Ibrahim Balogun, Composer, Lyricist - Brian Garcia, Composer, Lyricist", ["Zara Larsson", "Wizkid"]),
             ("Ramirez, MainArtist - Ivan Ramirez, Composer - Rocci, FeaturedArtist", ["Ramirez", "Rocci"]),
             ("Tijs Verwest, Writer - Tiesto, Producer, Performed by, MainArtist - Gina Tucci, A&R Direction - Tom Norris, Mixer - Lostboy, Producer - Sarah Blanchard, Writer - Pablo Bowman, Writer - Peter Rycroft, Writer - Ava Max, Performed by, MainArtist - Amanda Ava Koci, Writer - Claudia Valentina, Writer", ["Tiësto", "Ava Max"]),
-            ('Joe LaPorta, Mastering Engineer - Travis Scott, FeaturedArtist, AssociatedPerformer, Vocal - Leland Wayne, Composer, Lyricist - Jacques Webster, Composer, Lyricist - Offset, MainArtist, AssociatedPerformer, Vocal - Metro Boomin, Producer, Programmer, All Instruments, MainArtist, AssociatedPerformer, Vocal - Kiari Cephus, Composer, Lyricist - Ethan Stevens, Mixing Engineer - 21 Savage, MainArtist, AssociatedPerformer, Vocal - Shayaa Joseph, Composer, Lyricist - 21 Savage, Offset & Metro Boomin feat. Travis Scott, AssociatedPerformer', ["21 Savage", "Offset", "Metro Boomin", "Travis Scott"])
+            ('Joe LaPorta, Mastering Engineer - Travis Scott, FeaturedArtist, AssociatedPerformer, Vocal - Leland Wayne, Composer, Lyricist - Jacques Webster, Composer, Lyricist - Offset, MainArtist, AssociatedPerformer, Vocal - Metro Boomin, Producer, Programmer, All Instruments, MainArtist, AssociatedPerformer, Vocal - Kiari Cephus, Composer, Lyricist - Ethan Stevens, Mixing Engineer - 21 Savage, MainArtist, AssociatedPerformer, Vocal - Shayaa Joseph, Composer, Lyricist - 21 Savage, Offset & Metro Boomin feat. Travis Scott, AssociatedPerformer', ["21 Savage", "Offset", "Metro Boomin", "Travis Scott"]),
+            ("Train, Associated Performer, Main Artist - Priscilla Renea, Associated Performer, Composer, Featured Artist, Lyricist - Train feat. Priscilla Renea, Associated Performer - Pat Monahan, Composer, Lyricist - Neff U, Producer - Jake Sinclair, Producer - Suzy Shinn, Recording Engineer - Mark Endert, Mixing Engineer - Theron Feemster, Composer, Lyricist - Doug Johnson, Assistant Engineer - Ted Jensen, Mastering Engineer",["Train", "Priscilla Renea"]),
+            ("Akil \"O'Neal\" Brown, Coordinator - Leslie Braithwaite, Mixing Engineer - Debra Killings, Background Vocal - C. Harris, Composer - C. Harris, Lyricist - Carlton Lynn, Recording Engineer - Dallas Austin, Composer - Dallas Austin, Lyricist - Dallas Austin, Producer - Jasper Cameron, Composer - Jasper Cameron, Lyricist - Jasper Cameron, Background Vocal - T.I., Rap Performed By - Rick Sheppard, Engineer - Herbie Powers Jr., Mastering Engineer - Toya, Background Vocal - Toya Featuring T.I., Performer", ["Toya", "T.I."]),
+            ("The Heavy, Primary - The Dap-Kings Horns, Featuring",["The Heavy", "The Dap-Kings Horns"]),
+            ("The Chainsmokers, Associated Performer, Main Artist, Producer - Coldplay, Associated Performer, Main Artist - The Chainsmokers & Coldplay, Associated Performer - Andrew Taggart, Composer, Lyricist - Christopher Martin, Composer, Lyricist - Jordan \"DJ Swivel\" Young, Mixing Engineer, Producer - Emily Lazar, Mastering Engineer - Guy Berryman, Composer, Lyricist - Adam Alpert, Executive Producer - Chris Allgood, Assistant Engineer - Alex Pall, Executive Producer - Jonny Buckland, Composer, Lyricist - Will Champion, Composer, Lyricist",["The Chainsmokers", "Coldplay"]),
+            ("Sia, Associated Performer, Main Artist - Kendrick Lamar, Associated Performer, Composer, Featured Artist, Lyricist - Sia feat. Kendrick Lamar, Associated Performer - Sia Furler, Composer, Lyricist - Greg Kurstin, Composer, Engineer, Lyricist, Producer - alex pasco, Engineer - Julian Burg, Engineer - Serban Ghenea, Mixing Engineer - John Hanes, Engineer",["Sia", "Kendrick Lamar"]),
+            ("Copyright Control, MusicPublisher - Spock, Producer, MainArtist - Pouya, MainArtist - Songtrust BLVD, MusicPublisher - Kevin Pouya, Composer - Garrett Spach, Composer - Boobie Lootaveli, MainArtist - Habib Suz, Composer",["Pouya", "Spock", "Boobie Lootaveli"]),
+            ("Etterlene Jordan, ComposerLyricist - Eldra DeBarge, ComposerLyricist - William DeBarge, ComposerLyricist - Cornell Haynes, Jr., ComposerLyricist - Jason Epperson, Producer, ComposerLyricist - City Spud, Producer, MainArtist, FeaturedArtist - Levell Webb, ComposerLyricist",["Nelly", "City Spud"]),
+
+
         ]
 
         for test_string, expected_result in tests:
@@ -98,4 +108,7 @@ class TestQobuzFeaturedArtistTag(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    try:
+        unittest.main()
+    except Exception:
+        pass
